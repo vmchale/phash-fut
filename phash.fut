@@ -37,12 +37,7 @@ module perceptual_hash (M: float) = {
   let crop [m][n] (i: i32) (j: i32) (x: [m][n]M.t) : [i][j]M.t =
     take i (map (\x_i -> take j x_i) x)
 
-  -- o * o *
-  -- * * * *
-  -- o * o *
-  -- * * * *
-
-  -- This is a bad way to resize an image. Basically we throw away a bunch of 
+  -- This is an unsatisfying way to resize an image. Basically we throw away a bunch of
   -- points so it's the right size.
   let shrink (m: i32) (n: i32) (x: [][]M.t) : [m][n]M.t =
     let rows = length x
@@ -50,10 +45,9 @@ module perceptual_hash (M: float) = {
     in
 
     tabulate_2d m n
-      (\i j -> (x[i * (rows / m)])[j * (cols / n)])
+      (\i j -> unsafe (x[i * (rows / m)])[j * (cols / n)])
 
   -- TODO convolve/reflect at edges
-  -- TODO resize image
 
   let conj_dct (x: [32][32]M.t) : [32][32]M.t =
     let dct32 : *[32][32]M.t =
