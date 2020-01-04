@@ -28,7 +28,7 @@ module perceptual_hash (M: float) = {
     let med = median x
     in map (M.> med) x
 
-  let matmul [n][m][p] (x: [n][m]M.t) (y: [m][p]M.t) : [n][p]M.t =
+  local let matmul [n][m][p] (x: [n][m]M.t) (y: [m][p]M.t) : [n][p]M.t =
     map (\x_i ->
           map (\y_j -> M.sum (map2 (M.*) x_i y_j))
               (transpose y))
@@ -49,7 +49,7 @@ module perceptual_hash (M: float) = {
 
   -- TODO convolve/reflect at edges
 
-  let conj_dct (x: [32][32]M.t) : [32][32]M.t =
+  local let conj_dct (x: [32][32]M.t) : [32][32]M.t =
     let dct32 : *[32][32]M.t =
       let n = M.from_fraction 32 1
       in
