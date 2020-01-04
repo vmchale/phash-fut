@@ -105,7 +105,7 @@ module perceptual_hash (M: float) = {
 
     stenciled
 
-  local let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
+  let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
     let id_mat = tabulate_2d 7 7
       (\_ _ -> M.from_fraction 1 49)
     in
@@ -123,6 +123,8 @@ module phash_64 = perceptual_hash f64
 entry crop_f64 = phash_64.crop
 entry median_f64 = phash_64.median
 entry shrink_f64 = phash_64.shrink
+
+entry mean_filter_f32 = phash_32.mean_filter
 
 entry img_hash_f64 = phash_64.img_hash
 entry img_hash_f32 = phash_32.img_hash
