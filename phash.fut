@@ -86,10 +86,24 @@ module perceptual_hash (M: float) = {
               if j + extended_col >= x_cols
                 then x_cols - 1
                 else j - extended_col
-          in (x[i'])[j'])
+          in unsafe (x[i'])[j'])
+
+    let extract : [1][1]M.t -> M.t =
+      head <-< head
+
+    let window (row_start: i32) (col_start: i32) (row_end: i32) (col_end: i32) (x: [][]M.t) : [][]M.t =
+      unsafe drop row_start (take (row_end - row_start) (map (\x_i -> drop col_start (take (col_end - col_start) x_i)) x))
+
+    -- TODO: window function ?
+    let stenciled =
+      tabulate_2d x_rows x_cols
+        (\i j ->
+          let surroundings = window (i + extended_row) (j + extended_row) (i + ker_rows) (j + ker_cols) extended
+          in
+          unsafe extract (matmul ker surroundings))
     in
 
-    x
+    stenciled
 
   local let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
     let id_mat = tabulate_2d 7 7
