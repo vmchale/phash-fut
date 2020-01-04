@@ -1,4 +1,6 @@
-module perceptual_hash (M: real) = {
+module perceptual_hash (M: float) = {
+
+  import "lib/github.com/diku-dk/sorts/radix_sort"
 
   let to_u64 (x: [64]bool) : u64 =
     let bool_to_u64 (b: bool) : u64=
@@ -9,6 +11,15 @@ module perceptual_hash (M: real) = {
     in
 
     u64.sum (map2 (\b i -> bool_to_u64 b * (2 ** i)) x is)
+
+  let median (x: []M.t) : M.t =
+    let sorted = radix_sort_float M.num_bits M.get_bit x
+    let n = length x
+    in
+
+    if n % 2 == 0
+      then (sorted[n/2 - 1] M.+ sorted[n/2]) M./ (M.from_fraction 2 1)
+      else sorted[n/2]
 
   let matmul [n][m][p] (x: [n][m]M.t) (y: [m][p]M.t) : [n][p]M.t =
     map (\x_i ->
@@ -38,11 +49,18 @@ module phash_32 = perceptual_hash f32
 module phash_64 = perceptual_hash f64
 
 entry crop_f64 = phash_64.crop
-
--- TODO: median? look @ radix sort https://futhark-lang.org/examples/radix-sort.html
+entry median_f64 = phash_64.median
 
 -- Test crop dimensions
 -- ==
 -- entry: crop_f64
 -- input { 1 2 [[0.0, 1.0, 3.0], [2.0, 2.0, 3.0], [2.0, 1.0, 3.0]] }
 -- output { [[0.0, 1.0]] }
+
+-- Test median function
+-- ==
+-- entry: median_f64
+-- input { [2.0, 1.0, 3.0] }
+-- output { 2.0 }
+-- input { [2.0, 4.0, 3.0, 3.5, 2.0, 4.0] }
+-- output { 3.25 }
