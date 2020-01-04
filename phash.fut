@@ -2,7 +2,7 @@ module perceptual_hash (M: float) = {
 
   import "lib/github.com/diku-dk/sorts/radix_sort"
 
-  let to_u64 (x: [64]bool) : u64 =
+  local let to_u64 (x: [64]bool) : u64 =
     let bool_to_u64 (b: bool) : u64=
       if b then 1 else 0
 
@@ -12,8 +12,11 @@ module perceptual_hash (M: float) = {
 
     u64.sum (map2 (\b i -> bool_to_u64 b * (2 ** i)) x is)
 
+  local let sort : []M.t -> []M.t =
+    radix_sort_float M.num_bits M.get_bit
+
   let median (x: []M.t) : M.t =
-    let sorted = radix_sort_float M.num_bits M.get_bit x
+    let sorted = sort x
     let n = length x
     in
 
@@ -21,7 +24,7 @@ module perceptual_hash (M: float) = {
       then (sorted[n/2 - 1] M.+ sorted[n/2]) M./ (M.from_fraction 2 1)
       else sorted[n/2]
 
-  let above_med [n] (x: [n]M.t) : [n]bool =
+  local let above_med [n] (x: [n]M.t) : [n]bool =
     let med = median x
     in map (M.> med) x
 
@@ -34,8 +37,23 @@ module perceptual_hash (M: float) = {
   let crop [m][n] (i: i32) (j: i32) (x: [m][n]M.t) : [i][j]M.t =
     take i (map (\x_i -> take j x_i) x)
 
+  -- o * o *
+  -- * * * *
+  -- o * o *
+  -- * * * *
+
+  -- This is a bad way to resize an image. Basically we throw away a bunch of 
+  -- points so it's the right size.
+  let shrink (m: i32) (n: i32) (x: [][]M.t) : [m][n]M.t =
+    let rows = length x
+    let cols = length (head x)
+    in
+
+    tabulate_2d m n
+      (\i j -> (x[i * (rows / m)])[j * (cols / n)])
+
   -- TODO convolve/reflect at edges
-  -- TODO resizing image?
+  -- TODO resize image
 
   let conj_dct (x: [32][32]M.t) : [32][32]M.t =
     let dct32 : *[32][32]M.t =
@@ -55,6 +73,7 @@ module phash_64 = perceptual_hash f64
 
 entry crop_f64 = phash_64.crop
 entry median_f64 = phash_64.median
+entry shrink_f64 = phash_64.shrink
 
 -- Test crop dimensions
 -- ==
@@ -69,3 +88,9 @@ entry median_f64 = phash_64.median
 -- output { 2.0 }
 -- input { [2.0, 4.0, 3.0, 3.5, 2.0, 4.0] }
 -- output { 3.25 }
+
+-- Shrink function example
+-- ==
+-- entry: shrink_f64
+-- input { 2 2 [[1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0], [1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0]] }
+-- output { [[1.0, 1.0], [1.0, 1.0]] }
