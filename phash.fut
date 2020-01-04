@@ -47,7 +47,7 @@ module perceptual_hash (M: float) = {
     tabulate_2d m n
       (\i j -> unsafe (x[i * (rows / m)])[j * (cols / n)])
 
-  let conj_dct (x: [32][32]M.t) : [32][32]M.t =
+  local let conj_dct (x: [32][32]M.t) : [32][32]M.t =
     let dct32 : *[32][32]M.t =
       let n = M.from_fraction 32 1
       in
@@ -59,7 +59,7 @@ module perceptual_hash (M: float) = {
 
     matmul dct32 (matmul x (transpose dct32))
 
-  let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
+  local let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
     let ker_rows = 7
     let ker_cols = 7
     let x_rows = length x
@@ -121,10 +121,6 @@ module phash_64 = perceptual_hash f64
 entry crop_f64 = phash_64.crop
 entry median_f64 = phash_64.median
 entry shrink_f64 = phash_64.shrink
-
-entry mean_filter_f32 = phash_32.mean_filter
-entry shrink_f32 = phash_32.shrink
-entry dct_f32 = phash_32.conj_dct
 
 entry img_hash_f64 = phash_64.img_hash
 entry img_hash_f32 = phash_32.img_hash
