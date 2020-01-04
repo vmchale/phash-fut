@@ -54,7 +54,7 @@ module perceptual_hash (M: float) = {
 
       tabulate_2d 32 32
         (\i j ->
-          M.sqrt((M.from_fraction 2 1) M./ n) M.* M.cos((M.from_fraction (2*i*j+1) 1) M.* M.pi M./ ((M.from_fraction 2 1) M./ n)))
+          M.sqrt((M.from_fraction 2 1) M./ n) M.* M.cos((M.from_fraction (2*i*j+1) 1) M.* M.pi M./ ((M.from_fraction 2 1) M.* n)))
     in
 
     matmul dct32 (matmul x (transpose dct32))
