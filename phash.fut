@@ -60,36 +60,31 @@ module perceptual_hash (M: float) = {
     matmul dct32 (matmul x (transpose dct32))
 
   local let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
-    let ker_rows = 7
-    let ker_cols = 7
+    let ker_n = 7
     let x_rows = length x
     let x_cols = length (head x)
 
-    let extended_row = ker_rows / 2
-    let extended_col = ker_cols / 2
+    let extended_n = ker_n / 2
 
     -- extend it at the edges
     let extended =
-      tabulate_2d (x_rows + ker_rows - 1) (x_cols + ker_cols - 1)
+      tabulate_2d (x_rows + ker_n - 1) (x_cols + ker_n - 1)
         (\i j ->
           let i' =
-            if i <= extended_row then
+            if i <= extended_n then
               0
             else
-              if i + extended_row >= x_rows
+              if i + extended_n >= x_rows
                 then x_rows - 1
-                else i - extended_row
+                else i - extended_n
           let j' =
-            if j <= extended_col then
+            if j <= extended_n then
               0
             else
-              if j + extended_col >= x_cols
+              if j + extended_n >= x_cols
                 then x_cols - 1
-                else j - extended_col
+                else j - extended_n
           in unsafe (x[i'])[j'])
-
-    let extract (x : [7][7]M.t) : M.t =
-      M.sum (tabulate 7 (\i -> (x[i])[i]))
 
     let window (row_start: i32) (col_start: i32) (row_end: i32) (col_end: i32) (x: [][]M.t) : [][]M.t =
       map (\x_i -> x_i[col_start:col_end]) (x[row_start:row_end])
@@ -100,15 +95,13 @@ module perceptual_hash (M: float) = {
 
       in M.sum (map M.sum x) M./ (M.from_fraction (rows * cols) 1)
 
-    let stenciled =
-      tabulate_2d x_rows x_cols
-        (\i j ->
-          let surroundings = window i j (i + ker_rows) (j + ker_cols) extended
-          in
-          mean surroundings)
     in
 
-    stenciled
+    tabulate_2d x_rows x_cols
+      (\i j ->
+        let surroundings = window i j (i + ker_n) (j + ker_n) extended
+        in
+        mean surroundings)
 
   let img_hash : [][]M.t -> u64 =
     to_u64 <-< above_med <-< flatten <-< crop 8 8 <-< conj_dct <-< shrink 32 32 <-< mean_filter
