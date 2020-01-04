@@ -21,6 +21,10 @@ module perceptual_hash (M: float) = {
       then (sorted[n/2 - 1] M.+ sorted[n/2]) M./ (M.from_fraction 2 1)
       else sorted[n/2]
 
+  let above_med [n] (x: [n]M.t) : [n]bool =
+    let med = median x
+    in map (M.> med) x
+
   let matmul [n][m][p] (x: [n][m]M.t) (y: [m][p]M.t) : [n][p]M.t =
     map (\x_i ->
           map (\y_j -> M.sum (map2 (M.*) x_i y_j))
@@ -31,6 +35,7 @@ module perceptual_hash (M: float) = {
     take i (map (\x_i -> take j x_i) x)
 
   -- TODO convolve/reflect at edges
+  -- TODO resizing image?
 
   let conj_dct (x: [32][32]M.t) : [32][32]M.t =
     let dct32 : *[32][32]M.t =
