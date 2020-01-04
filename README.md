@@ -9,5 +9,5 @@ To run the demo,
 ```
 futhark pkg sync
 make
-python3 test-harness.py
+python test-harness.py
 ```
