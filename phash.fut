@@ -1,6 +1,6 @@
 module perceptual_hash (M: float) = {
 
-  import "lib/github.com/diku-dk/sorts/radix_sort"
+  local import "lib/github.com/diku-dk/sorts/radix_sort"
 
   local let to_u64 (x: [64]bool) : u64 =
     let bool_to_u64 (b: bool) : u64=
