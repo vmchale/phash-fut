@@ -59,10 +59,15 @@ module perceptual_hash (M: float) = {
 
     matmul dct32 (matmul x (transpose dct32))
 
-  -- TODO convolve/reflect at edges
+  local let convolve [m][n] (x: [m][n]M.t) (ker: [][]M.t) : [m][n]M.t =
+    x -- FIXME: not this
 
   local let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
-    x -- FIXME
+    let id_mat = tabulate_2d 7 7
+      (\_ _ -> M.from_fraction 1 49)
+    in
+
+    convolve x id_mat
 
   let img_hash : [][]M.t -> u64 =
     to_u64 <-< above_med <-< flatten <-< crop 8 8 <-< conj_dct <-< shrink 32 32 <-< mean_filter
