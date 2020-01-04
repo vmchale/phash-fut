@@ -39,8 +39,10 @@ module phash_64 = perceptual_hash f64
 
 entry crop_f64 = phash_64.crop
 
+-- TODO: median? look @ radix sort https://futhark-lang.org/examples/radix-sort.html
+
 -- Test crop dimensions
 -- ==
 -- entry: crop_f64
--- input { 1 2 [[0.0, 1.0 ], [2.0, 2.0], [2.0, 1.0]] }
+-- input { 1 2 [[0.0, 1.0, 3.0], [2.0, 2.0, 3.0], [2.0, 1.0, 3.0]] }
 -- output { [[0.0, 1.0]] }
