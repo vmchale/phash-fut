@@ -37,7 +37,7 @@ module perceptual_hash (M: float) = {
   let crop [m][n] (i: i32) (j: i32) (x: [m][n]M.t) : [i][j]M.t =
     take i (map (\x_i -> take j x_i) x)
 
-  -- This is an unsatisfying way to resize an image. Basically we throw away a bunch of
+  -- | This is an unsatisfying way to resize an image. Basically we throw away a bunch of
   -- points so it's the right size.
   let shrink (m: i32) (n: i32) (x: [][]M.t) : [m][n]M.t =
     let rows = length x
@@ -46,8 +46,6 @@ module perceptual_hash (M: float) = {
 
     tabulate_2d m n
       (\i j -> unsafe (x[i * (rows / m)])[j * (cols / n)])
-
-  -- TODO convolve/reflect at edges
 
   local let conj_dct (x: [32][32]M.t) : [32][32]M.t =
     let dct32 : *[32][32]M.t =
@@ -60,6 +58,14 @@ module perceptual_hash (M: float) = {
     in
 
     matmul dct32 (matmul x (transpose dct32))
+
+  -- TODO convolve/reflect at edges
+
+  local let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
+    x -- FIXME
+
+  let img_hash : [][]M.t -> u64 =
+    to_u64 <-< above_med <-< flatten <-< crop 8 8 <-< conj_dct <-< shrink 32 32 <-< mean_filter
 }
 
 module phash_32 = perceptual_hash f32
