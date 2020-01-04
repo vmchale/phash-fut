@@ -16,7 +16,6 @@ module perceptual_hash (M: real) = {
               (transpose y))
         x
 
-  -- TODO: is this correct??
   let crop [m][n] (i: i32) (j: i32) (x: [m][n]M.t) : [i][j]M.t =
     take i (map (\x_i -> take j x_i) x)
 
