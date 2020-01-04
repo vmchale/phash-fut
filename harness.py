@@ -5,7 +5,10 @@ import numpy as np
 
 mod = phash.phash()
 
-img = np.array(imageio.imread('data/frog.jpeg', pilmode='F'))
+img0 = np.array(imageio.imread('data/frog.jpeg', pilmode='F'))
+img1 = np.array(imageio.imread('data/frog.png', pilmode='F'))
+img2 = np.array(imageio.imread('data/cat.png', pilmode='F'))
 
-print(img)
-print(mod.mean_filter_f32(img))
+print(mod.img_hash_f32(img0))
+print(mod.img_hash_f32(img1))
+print(mod.img_hash_f32(img2))
