@@ -1,3 +1,6 @@
+phash.py
+*.pyc
+__pycache__
 lib
 *.c
 *.actual
