@@ -35,7 +35,7 @@ module perceptual_hash (M: float) = {
         x
 
   let crop [m][n] (i: i32) (j: i32) (x: [m][n]M.t) : [i][j]M.t =
-    take i (map (\x_i -> take j x_i) x)
+    map (\x_i -> x_i[:j]) (x[:i])
 
   -- | This is an unsatisfying way to resize an image. Basically we throw away a bunch of
   -- points so it's the right size.
@@ -45,7 +45,7 @@ module perceptual_hash (M: float) = {
     in
 
     tabulate_2d m n
-      (\i j -> unsafe (x[i * (rows / m)])[j * (cols / n)])
+      (\i j -> (x[i * (rows / m)])[j * (cols / n)])
 
   local let conj_dct (x: [32][32]M.t) : [32][32]M.t =
     let dct32 : *[32][32]M.t =
@@ -59,7 +59,7 @@ module perceptual_hash (M: float) = {
 
     matmul dct32 (matmul x (transpose dct32))
 
-  let convolve [m][n] (x: [m][n]M.t) (ker: [][]M.t) : [m][n]M.t =
+  let convolve [m][n] (x: [m][n]M.t) (ker: [][]M.t) : [][]M.t =
     let ker_rows = length ker
     let ker_cols = length (head ker)
     let x_rows = length x
@@ -86,26 +86,26 @@ module perceptual_hash (M: float) = {
               if j + extended_col >= x_cols
                 then x_cols - 1
                 else j - extended_col
-          in unsafe (x[i'])[j'])
+          in (x[i'])[j'])
 
     let extract : [1][1]M.t -> M.t =
       head <-< head
 
+    -- TODO: test this piece of shit
     let window (row_start: i32) (col_start: i32) (row_end: i32) (col_end: i32) (x: [][]M.t) : [][]M.t =
-      unsafe drop row_start (take (row_end - row_start) (map (\x_i -> drop col_start (take (col_end - col_start) x_i)) x))
+      map (\x_i -> x_i[row_start:row_end]) (x[col_start:col_end])
 
-    -- TODO: window function ?
     let stenciled =
       tabulate_2d x_rows x_cols
         (\i j ->
-          let surroundings = window (i + extended_row) (j + extended_row) (i + ker_rows) (j + ker_cols) extended
+          let surroundings = window i j (i + ker_rows) (j + ker_cols) extended
           in
-          unsafe extract (matmul ker surroundings))
+          extract (matmul ker surroundings))
     in
 
     stenciled
 
-  let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
+  let mean_filter [m][n] (x: [m][n]M.t) : [][]M.t =
     let id_mat = tabulate_2d 7 7
       (\_ _ -> M.from_fraction 1 49)
     in
