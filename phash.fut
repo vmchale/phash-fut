@@ -45,9 +45,9 @@ module perceptual_hash (M: float) = {
     in
 
     tabulate_2d m n
-      (\i j -> (x[i * (rows / m)])[j * (cols / n)])
+      (\i j -> unsafe (x[i * (rows / m)])[j * (cols / n)])
 
-  local let conj_dct (x: [32][32]M.t) : [32][32]M.t =
+  let conj_dct (x: [32][32]M.t) : [32][32]M.t =
     let dct32 : *[32][32]M.t =
       let n = M.from_fraction 32 1
       in
@@ -59,9 +59,9 @@ module perceptual_hash (M: float) = {
 
     matmul dct32 (matmul x (transpose dct32))
 
-  let convolve [m][n] (x: [m][n]M.t) (ker: [][]M.t) : [][]M.t =
-    let ker_rows = length ker
-    let ker_cols = length (head ker)
+  let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
+    let ker_rows = 7
+    let ker_cols = 7
     let x_rows = length x
     let x_cols = length (head x)
 
@@ -86,31 +86,29 @@ module perceptual_hash (M: float) = {
               if j + extended_col >= x_cols
                 then x_cols - 1
                 else j - extended_col
-          in (x[i'])[j'])
+          in unsafe (x[i'])[j'])
 
-    let extract : [1][1]M.t -> M.t =
-      head <-< head
+    let extract (x : [7][7]M.t) : M.t =
+      M.sum (tabulate 7 (\i -> (x[i])[i]))
 
-    -- TODO: test this piece of shit
     let window (row_start: i32) (col_start: i32) (row_end: i32) (col_end: i32) (x: [][]M.t) : [][]M.t =
-      map (\x_i -> x_i[row_start:row_end]) (x[col_start:col_end])
+      map (\x_i -> x_i[col_start:col_end]) (x[row_start:row_end])
+
+    let mean (x: [][]M.t) : M.t =
+      let rows = length x
+      let cols = length (head x)
+
+      in M.sum (map M.sum x) M./ (M.from_fraction (rows * cols) 1)
 
     let stenciled =
       tabulate_2d x_rows x_cols
         (\i j ->
           let surroundings = window i j (i + ker_rows) (j + ker_cols) extended
           in
-          extract (matmul ker surroundings))
+          mean surroundings)
     in
 
     stenciled
-
-  let mean_filter [m][n] (x: [m][n]M.t) : [][]M.t =
-    let id_mat = tabulate_2d 7 7
-      (\_ _ -> M.from_fraction 1 49)
-    in
-
-    convolve x id_mat
 
   let img_hash : [][]M.t -> u64 =
     to_u64 <-< above_med <-< flatten <-< crop 8 8 <-< conj_dct <-< shrink 32 32 <-< mean_filter
@@ -125,6 +123,8 @@ entry median_f64 = phash_64.median
 entry shrink_f64 = phash_64.shrink
 
 entry mean_filter_f32 = phash_32.mean_filter
+entry shrink_f32 = phash_32.shrink
+entry dct_f32 = phash_32.conj_dct
 
 entry img_hash_f64 = phash_64.img_hash
 entry img_hash_f32 = phash_32.img_hash
