@@ -59,8 +59,37 @@ module perceptual_hash (M: float) = {
 
     matmul dct32 (matmul x (transpose dct32))
 
-  local let convolve [m][n] (x: [m][n]M.t) (ker: [][]M.t) : [m][n]M.t =
-    x -- FIXME: not this
+  let convolve [m][n] (x: [m][n]M.t) (ker: [][]M.t) : [m][n]M.t =
+    let ker_rows = length ker
+    let ker_cols = length (head ker)
+    let x_rows = length x
+    let x_cols = length (head x)
+
+    let extended_row = ker_rows / 2
+    let extended_col = ker_cols / 2
+
+    -- extend it at the edges
+    let extended =
+      tabulate_2d (x_rows + ker_rows - 1) (x_cols + ker_cols - 1)
+        (\i j ->
+          let i' =
+            if i <= extended_row then
+              0
+            else
+              if i + extended_row >= x_rows
+                then x_rows - 1
+                else i - extended_row
+          let j' =
+            if j <= extended_col then
+              0
+            else
+              if j + extended_col >= x_cols
+                then x_cols - 1
+                else j - extended_col
+          in (x[i'])[j'])
+    in
+
+    x
 
   local let mean_filter [m][n] (x: [m][n]M.t) : [m][n]M.t =
     let id_mat = tabulate_2d 7 7
@@ -71,6 +100,7 @@ module perceptual_hash (M: float) = {
 
   let img_hash : [][]M.t -> u64 =
     to_u64 <-< above_med <-< flatten <-< crop 8 8 <-< conj_dct <-< shrink 32 32 <-< mean_filter
+
 }
 
 module phash_32 = perceptual_hash f32
@@ -79,6 +109,9 @@ module phash_64 = perceptual_hash f64
 entry crop_f64 = phash_64.crop
 entry median_f64 = phash_64.median
 entry shrink_f64 = phash_64.shrink
+
+entry img_hash_f64 = phash_64.img_hash
+entry img_hash_f32 = phash_32.img_hash
 
 -- Test crop dimensions
 -- ==
