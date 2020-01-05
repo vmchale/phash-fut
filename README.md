@@ -4,10 +4,11 @@ A perceptual hash in Futhark.
 
 ## Demo
 
-To run the demo,
+To run the demo with 
+[pipenv](https://pypi.org/project/pipenv/)
 
 ```
 futhark pkg sync
 make
-python test-harness.py
+pipenv run python test-harness.py
 ```
