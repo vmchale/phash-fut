@@ -1,6 +1,7 @@
 module perceptual_hash (M: float) = {
 
   local import "lib/github.com/diku-dk/sorts/radix_sort"
+  -- local import "lib/github.com/diku-dk/sorts/merge_sort"
 
   local let to_u64 (x: [64]bool) : u64 =
     let bool_to_u64 (b: bool) : u64=
@@ -14,6 +15,7 @@ module perceptual_hash (M: float) = {
 
   local let sort : []M.t -> []M.t =
     radix_sort_float M.num_bits M.get_bit
+    -- TODO: merge sort?
 
   let median (x: []M.t) : M.t =
     let sorted = sort x
@@ -137,3 +139,15 @@ entry img_hash_f32 = phash_32.img_hash
 -- entry: shrink_f64
 -- input { 2 2 [[1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0], [1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0]] }
 -- output { [[1.0, 1.0], [1.0, 1.0]] }
+
+-- Bench img_hash
+-- ==
+-- entry: img_hash_f64
+-- compiled random input { [400][400]f64 }
+-- auto output
+
+-- Bench median
+-- ==
+-- entry: median_f64
+-- compiled random input { [160000]f64 }
+-- auto output
