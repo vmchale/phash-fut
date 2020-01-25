@@ -2,6 +2,9 @@
 
 A perceptual hash in Futhark.
 
+Documentation for the Futhark library is
+[here](https://vmchale.github.io/phash-fut/).
+
 ## Demo
 
 To run the demo with 
