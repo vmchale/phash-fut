@@ -1,0 +1,1 @@
+- [ ] https://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.ndimage.filters.convolve.html
