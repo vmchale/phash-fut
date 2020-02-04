@@ -1,7 +1,8 @@
 module perceptual_hash (M: float) = {
 
-  local import "lib/github.com/diku-dk/sorts/radix_sort"
-  -- local import "lib/github.com/diku-dk/sorts/merge_sort"
+  local import "lib/github.com/diku-dk/statistics/statistics"
+
+  module statistics = mk_statistics M
 
   local let to_u64 (x: [64]bool) : u64 =
     let bool_to_u64 (b: bool) : u64=
@@ -13,18 +14,8 @@ module perceptual_hash (M: float) = {
 
     u64.sum (map2 (\b i -> bool_to_u64 b * (2 ** i)) x is)
 
-  local let sort : []M.t -> []M.t =
-    radix_sort_float M.num_bits M.get_bit
-    -- TODO: merge sort?
-
-  let median (x: []M.t) : M.t =
-    let sorted = sort x
-    let n = length x
-    in
-
-    if n % 2 == 0
-      then (sorted[n/2 - 1] M.+ sorted[n/2]) M./ (M.from_fraction 2 1)
-      else sorted[n/2]
+  local let median (x: []M.t) : M.t =
+    statistics.median x
 
   local let above_med [n] (x: [n]M.t) : [n]bool =
     let med = median x
@@ -114,7 +105,6 @@ module phash_32 = perceptual_hash f32
 module phash_64 = perceptual_hash f64
 
 entry crop_f64 = phash_64.crop
-entry median_f64 = phash_64.median
 entry shrink_f64 = phash_64.shrink
 
 entry img_hash_f64 = phash_64.img_hash
@@ -126,14 +116,6 @@ entry img_hash_f32 = phash_32.img_hash
 -- input { 1 2 [[0.0, 1.0, 3.0], [2.0, 2.0, 3.0], [2.0, 1.0, 3.0]] }
 -- output { [[0.0, 1.0]] }
 
--- Test median function
--- ==
--- entry: median_f64
--- input { [2.0, 1.0, 3.0] }
--- output { 2.0 }
--- input { [2.0, 4.0, 3.0, 3.5, 2.0, 4.0] }
--- output { 3.25 }
-
 -- Shrink function example
 -- ==
 -- entry: shrink_f64
@@ -144,10 +126,4 @@ entry img_hash_f32 = phash_32.img_hash
 -- ==
 -- entry: img_hash_f64
 -- compiled random input { [400][400]f64 }
--- auto output
-
--- Bench median
--- ==
--- entry: median_f64
--- compiled random input { [160000]f64 }
 -- auto output
